@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# Credentials
+*.json
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
