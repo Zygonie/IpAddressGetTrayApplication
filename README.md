@@ -17,4 +17,4 @@ There are two simple functions :
 
 Here is a screenshot :
 
-<image alt="screenshot" src="images/layout".png/>
+<image alt="screenshot" src="images/layout.png"/>
