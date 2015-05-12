@@ -24,7 +24,9 @@ namespace IpAddressGetTrayApplication
 
          //create the notifyicon (it's a resource declared in NotifyIconResources.xaml
          notifyIcon = (TaskbarIcon)FindResource("NotifyIcon");
-         notifyIcon.DataContext = new NotifyIconViewModel();
+         NotifyIconViewModel viewModel = new NotifyIconViewModel();
+         notifyIcon.DataContext = viewModel;
+         viewModel.Start();
       }
 
       protected override void OnExit(ExitEventArgs e)

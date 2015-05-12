@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Windows.Input;
-using System.Timers;
+//using System.Timers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace IpAddressGetTrayApplication
 {
-   public class NotifyIconViewModel
+   public class NotifyIconViewModel : System.ComponentModel.INotifyPropertyChanged
    {
       #region Fields
 
@@ -16,6 +17,7 @@ namespace IpAddressGetTrayApplication
       private string _currentIP;
       private GoogleServices _googleServices;
       private bool _isVisible;
+      private const string defaultMessage = "IP currently retrieved...";
 
       #endregion
 
@@ -86,6 +88,16 @@ namespace IpAddressGetTrayApplication
 
       public NotifyIconViewModel()
       {
+         this.CurrentIP = defaultMessage;
+         this.IsVisible = true;
+      }
+
+      #endregion
+
+      #region Methods
+
+      internal void Start()
+      {
          //Register to start with Windows
          try
          {
@@ -108,31 +120,39 @@ namespace IpAddressGetTrayApplication
          //{
          //   key.DeleteValue("My Program", false);
          //}
-
-         this.CurrentIP = "IP currently retrieved...";
-
-         this._isVisible = true;
-         this._timer = new Timer();
-         this._timer.Elapsed += timer_Elapsed;
-         this._timer.Interval = TimeSpan.FromHours(6).TotalMilliseconds;
-         this._timer.Start();
+                  
+         this._timer = new Timer(new TimerCallback(timer_Elapsed), null, 6 * 3600 * 1000, Timeout.Infinite);
          Logger.Log.WriteLog("IP getter service started.");
 
          try
          {
-            this._googleServices = new GoogleServices();
-            this.CurrentIP = this._googleServices.CurrentIP;
-            this._isVisible = true;
+            Task.Factory.StartNew(() =>
+            {
+               int count = 0;
+               do
+               {
+                  this._googleServices = new GoogleServices();
+                  if(this._googleServices == null || this._googleServices.CurrentIP == string.Empty)
+                  {
+                     Thread.Sleep(5 * 60 * 1000);
+                     count++;
+                  }
+                  else
+                  {
+                     DispatchService.Invoke(() =>
+                     {
+                        this.CurrentIP = this._googleServices.CurrentIP;
+                     });
+                  }
+               }
+               while(this.CurrentIP == defaultMessage && count < 12);//retry max 1h
+            });
          }
          catch(Exception err)
          {
             Logger.Log.WriteLog(err);
          }
       }
-
-      #endregion
-
-      #region Methods
 
       private void SendMail()
       {
@@ -164,7 +184,7 @@ namespace IpAddressGetTrayApplication
          });
       }
 
-      private void timer_Elapsed(object sender, ElapsedEventArgs e)
+      private void timer_Elapsed(object state)
       {
          Task.Factory.StartNew(() =>
          {

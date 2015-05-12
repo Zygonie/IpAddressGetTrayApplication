@@ -29,6 +29,7 @@ namespace IpAddressGetTrayApplication
 
       public GoogleServices()
       {
+         this.CurrentIP = string.Empty;
          InitializeGoogleServices();
          GetFileId();
          this.CurrentIP = CheckIpAddress();
@@ -49,7 +50,7 @@ namespace IpAddressGetTrayApplication
          try
          {
             string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
-            using(var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(assemblyName + ".credentials.client_secrets.json"))
+            using(var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(assemblyName + ".MyCredentials.client_secrets.json"))
             {
                ClientSecrets secrets = GoogleClientSecrets.Load(stream).Secrets;
                IDataStore credentialStore = new FileDataStore("FindIpAddress.credentials");
@@ -156,7 +157,7 @@ namespace IpAddressGetTrayApplication
       {
          WebClient webClient = new WebClient();
          string IP = webClient.DownloadString(url);
-         return IP.Remove('\n');
+         return IP.Replace("\n", string.Empty);
       }
 
       /// <summary>
@@ -181,7 +182,7 @@ namespace IpAddressGetTrayApplication
       {
          MailSecrets mailSecret = null;
 
-         using(var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("IpAddressGetTrayApplication.credentials.mail_secrets.json"))
+         using(var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("IpAddressGetTrayApplication.MyCredentials.mail_secrets.json"))
          {
             Json.JsonSerializer serializer = new Json.JsonSerializer();
             System.IO.StreamReader streamReader = new System.IO.StreamReader(stream);
